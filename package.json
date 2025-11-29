@@ -1,0 +1,63 @@
+{
+  "name": "demo-recorder",
+  "version": "1.0.0",
+  "description": "Record demo videos of web apps using Playwright",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "demo-recorder": "./bin/demo-recorder.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "dev": "ts-node src/index.ts",
+    "record": "ts-node src/index.ts record",
+    "create": "ts-node src/index.ts create",
+    "list": "ts-node src/index.ts list",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run test && npm run build",
+    "postinstall": "npx playwright install chromium || true"
+  },
+  "keywords": [
+    "playwright",
+    "video",
+    "demo",
+    "automation",
+    "screen-recording",
+    "testing",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "ora": "^8.1.0",
+    "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
