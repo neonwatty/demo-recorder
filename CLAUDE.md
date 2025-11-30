@@ -51,6 +51,18 @@ This project is a CLI tool for recording demo videos and screenshots of web apps
 - "Create HTML snippets to embed the demo video"
 - "Get the code to put this video in my README"
 
+### Mobile Screenshots
+
+- "Capture screenshots on iPhone 15 Pro viewport"
+- "Take mobile screenshots of the demo"
+- "Run the demo on iPad viewport"
+
+### Annotated Screenshots
+
+- "Add step numbers to the screenshots"
+- "Capture screenshots with action captions"
+- "Take numbered screenshots for the tutorial"
+
 ## Commands Reference
 
 ```bash
@@ -59,6 +71,7 @@ demo-recorder record <demo-file> [--headed] [--no-convert]
 
 # Screenshot capture
 demo-recorder screenshot <demo-file> [--format png|jpeg|webp] [--headed] [--no-gallery]
+  [--viewport <preset>] [--step-numbers] [--step-position <pos>] [--captions]
 
 # Thumbnail extraction
 demo-recorder thumbnail <video-file> [-t <seconds>] [-w <width>] [-f <format>]
@@ -71,6 +84,9 @@ demo-recorder markdown <screenshot-dir> [-t <title>] [-d <description>] [--times
 
 # Embed code generation
 demo-recorder embed <video-file> [-w <width>] [-h <height>] [--autoplay] [--loop] [--poster <url>]
+
+# List viewport presets
+demo-recorder viewports
 
 # Create new demo
 demo-recorder create <id> --url <url>

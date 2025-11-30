@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand, markdownCommand, embedCommand } from './cli/commands';
+import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand, markdownCommand, embedCommand, viewportsCommand } from './cli/commands';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../package.json');
@@ -44,6 +44,10 @@ program
   .option('--full-page', 'Capture full page instead of viewport')
   .option('--headed', 'Run browser in headed mode (visible window)')
   .option('--no-gallery', 'Skip HTML gallery generation')
+  .option('--viewport <preset>', 'Viewport preset (e.g., iphone-15-pro) or WxH')
+  .option('--step-numbers', 'Add step number badges to screenshots')
+  .option('--step-position <pos>', 'Badge position: top-left, top-right, bottom-left, bottom-right', 'top-left')
+  .option('--captions', 'Add action description captions')
   .action(screenshotCommand);
 
 // demo-recorder list
@@ -99,5 +103,11 @@ program
   .option('--muted', 'Mute video')
   .option('--poster <url>', 'Poster image URL')
   .action(embedCommand);
+
+// demo-recorder viewports
+program
+  .command('viewports')
+  .description('List available viewport presets for mobile/desktop')
+  .action(viewportsCommand);
 
 program.parse();
