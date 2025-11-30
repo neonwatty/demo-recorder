@@ -11,6 +11,46 @@ export interface VideoSettings {
 }
 
 /**
+ * Options for animated typing
+ */
+export interface TypeOptions {
+  /** Delay between characters in ms (default: 50) */
+  delay?: number;
+  /** Random variation in delay (default: 20) */
+  variation?: number;
+}
+
+/**
+ * Options for cursor movement
+ */
+export interface MoveOptions {
+  /** Total move duration in ms (default: 500) */
+  duration?: number;
+  /** Number of interpolation steps (default: 20) */
+  steps?: number;
+}
+
+/**
+ * Options for animated click
+ */
+export interface ClickOptions {
+  /** How long to hover before clicking in ms (default: 200) */
+  hoverDuration?: number;
+  /** Cursor move duration in ms (default: 400) */
+  moveDuration?: number;
+}
+
+/**
+ * Options for zoom highlight effect
+ */
+export interface ZoomOptions {
+  /** Zoom scale factor (default: 1.05) */
+  scale?: number;
+  /** Total animation duration in ms (default: 600) */
+  duration?: number;
+}
+
+/**
  * Context passed to the demo's run function
  */
 export interface DemoContext {
@@ -24,6 +64,16 @@ export interface DemoContext {
   wait: (ms: number) => Promise<void>;
   /** Helper to highlight an element before interacting */
   highlight: (selector: string, durationMs?: number) => Promise<void>;
+  /** Hide dev tools (Next.js logo, etc.) */
+  hideDevTools: () => Promise<void>;
+  /** Type text with character-by-character animation */
+  typeAnimated: (selector: string, text: string, options?: TypeOptions) => Promise<void>;
+  /** Move cursor smoothly to an element */
+  moveTo: (selector: string, options?: MoveOptions) => Promise<void>;
+  /** Move to element, hover, then click */
+  clickAnimated: (selector: string, options?: ClickOptions) => Promise<void>;
+  /** Highlight with zoom/scale effect */
+  zoomHighlight: (selector: string, options?: ZoomOptions) => Promise<void>;
 }
 
 /**
