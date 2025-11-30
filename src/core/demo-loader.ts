@@ -11,7 +11,7 @@ export async function loadDemo(filePath: string): Promise<DemoDefinition> {
   delete require.cache[require.resolve(absolutePath)];
 
   // Use require for CommonJS compatibility with ts-node
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const module = require(absolutePath);
   const demo: DemoDefinition = module.default || module;
 

@@ -143,7 +143,7 @@ export class PlaywrightRecorder {
       );
 
       await page.waitForTimeout(durationMs + 200);
-    } catch (error) {
+    } catch {
       logger.warn(`Failed to highlight element: ${selector}`);
     }
   }
