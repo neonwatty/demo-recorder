@@ -114,3 +114,126 @@ export async function getFfmpegVersion(): Promise<string | null> {
     ffmpeg.on('error', () => resolve(null));
   });
 }
+
+export interface ThumbnailOptions {
+  /** Input video file path */
+  inputPath: string;
+  /** Output thumbnail path (auto-generated if not provided) */
+  outputPath?: string;
+  /** Timestamp in seconds (default: 1/3 of video duration) */
+  timestamp?: number;
+  /** Output width in pixels (height auto-calculated, default: 1280) */
+  width?: number;
+  /** Image format (default: 'png') */
+  format?: 'png' | 'jpeg' | 'webp';
+  /** Quality for jpeg/webp (0-100, default: 90) */
+  quality?: number;
+}
+
+/**
+ * Get video duration in seconds using ffprobe
+ */
+export async function getVideoDuration(inputPath: string): Promise<number> {
+  return new Promise((resolve) => {
+    const ffprobe = spawn('ffprobe', [
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
+      inputPath,
+    ]);
+
+    let output = '';
+    ffprobe.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    ffprobe.on('close', (code) => {
+      if (code === 0) {
+        const duration = parseFloat(output.trim());
+        resolve(isNaN(duration) ? 0 : duration);
+      } else {
+        resolve(0);
+      }
+    });
+
+    ffprobe.on('error', () => resolve(0));
+  });
+}
+
+/**
+ * Extract a thumbnail frame from a video
+ */
+export async function extractThumbnail(options: ThumbnailOptions): Promise<string> {
+  const { inputPath, width = 1280, format = 'png', quality = 90 } = options;
+
+  // Determine timestamp (default to 1/3 into video)
+  let timestamp = options.timestamp;
+  if (timestamp === undefined) {
+    const duration = await getVideoDuration(inputPath);
+    timestamp = duration > 0 ? duration / 3 : 1;
+  }
+
+  const ext = format === 'jpeg' ? 'jpg' : format;
+  const outputPath =
+    options.outputPath || inputPath.replace(/\.(mp4|webm|mov|avi)$/i, `-thumb.${ext}`);
+
+  logger.info(`Extracting thumbnail at ${timestamp.toFixed(2)}s...`);
+
+  return new Promise((resolve, reject) => {
+    const args = [
+      '-ss',
+      timestamp.toString(),
+      '-i',
+      inputPath,
+      '-vframes',
+      '1',
+      '-vf',
+      `scale=${width}:-1`,
+    ];
+
+    // Add quality settings for lossy formats
+    if (format === 'jpeg') {
+      // FFmpeg jpeg quality: 2-31, lower is better
+      const ffmpegQuality = Math.round(31 - (quality / 100) * 29);
+      args.push('-q:v', ffmpegQuality.toString());
+    } else if (format === 'webp') {
+      args.push('-quality', quality.toString());
+    }
+
+    args.push('-y', outputPath);
+
+    const ffmpeg = spawn('ffmpeg', args);
+
+    let stderr = '';
+    ffmpeg.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0) {
+        logger.info(`Thumbnail created: ${outputPath}`);
+        resolve(outputPath);
+      } else {
+        reject(new Error(`FFmpeg exited with code ${code}: ${stderr.slice(-500)}`));
+      }
+    });
+
+    ffmpeg.on('error', (err) => {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        reject(
+          new Error(
+            'FFmpeg not found. Please install FFmpeg:\n' +
+              '  macOS: brew install ffmpeg\n' +
+              '  Ubuntu: sudo apt install ffmpeg\n' +
+              '  Windows: choco install ffmpeg'
+          )
+        );
+      } else {
+        reject(new Error(`FFmpeg error: ${err.message}`));
+      }
+    });
+  });
+}

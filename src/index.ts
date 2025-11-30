@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { recordCommand, listCommand, createCommand, screenshotCommand } from './cli/commands';
+import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand } from './cli/commands';
 
 const program = new Command();
 
@@ -49,5 +49,28 @@ program
   .description('List all demo definition files')
   .option('-d, --dir <directory>', 'Demos directory', './demos')
   .action(listCommand);
+
+// demo-recorder thumbnail <video-file>
+program
+  .command('thumbnail <video-file>')
+  .description('Extract a thumbnail image from a video file')
+  .option('-o, --output <path>', 'Output image path')
+  .option('-t, --time <seconds>', 'Timestamp in seconds (default: 1/3 into video)')
+  .option('-w, --width <n>', 'Width in pixels', '1280')
+  .option('-f, --format <format>', 'Image format: png, jpeg, webp', 'png')
+  .option('-q, --quality <n>', 'Quality for jpeg/webp (0-100)', '90')
+  .action(thumbnailCommand);
+
+// demo-recorder gif <video-file>
+program
+  .command('gif <video-file>')
+  .description('Convert a video file to animated GIF')
+  .option('-o, --output <path>', 'Output GIF path')
+  .option('--fps <n>', 'Frames per second', '10')
+  .option('--width <n>', 'Width in pixels', '800')
+  .option('--colors <n>', 'Color palette size (32-256)', '256')
+  .option('--no-dither', 'Disable dithering')
+  .option('--fast', 'Use faster single-pass encoding (lower quality)')
+  .action(gifCommand);
 
 program.parse();

@@ -59,6 +59,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Check for unused code
+        run: npm run knip
+
   e2e-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

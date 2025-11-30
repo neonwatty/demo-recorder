@@ -3,7 +3,8 @@ import fs from 'fs/promises';
 import ora from 'ora';
 import { PlaywrightRecorder } from '../recorder/playwright-recorder';
 import { ScreenshotRecorder } from '../recorder/screenshot-recorder';
-import { convertToMp4, checkFfmpegInstalled } from '../recorder/video-processor';
+import { convertToMp4, checkFfmpegInstalled, extractThumbnail } from '../recorder/video-processor';
+import { convertToGif } from '../recorder/gif-processor';
 import { loadDemo, listDemos } from '../core/demo-loader';
 import { logger } from '../utils/logger';
 import type { ScreenshotSettings } from '../core/types';
@@ -30,6 +31,23 @@ export interface ScreenshotOptions {
   fullPage: boolean;
   headed: boolean;
   gallery: boolean;
+}
+
+export interface ThumbnailOptions {
+  output?: string;
+  time?: string;
+  width: string;
+  format: 'png' | 'jpeg' | 'webp';
+  quality: string;
+}
+
+export interface GifOptions {
+  output?: string;
+  fps: string;
+  width: string;
+  colors: string;
+  dither: boolean;
+  fast: boolean;
 }
 
 /**
@@ -212,6 +230,67 @@ export async function createCommand(id: string, options: CreateOptions): Promise
     }
   } catch (error) {
     spinner.fail('Failed to create demo');
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/**
+ * Thumbnail command - extracts a thumbnail from a video file
+ */
+export async function thumbnailCommand(videoFile: string, options: ThumbnailOptions): Promise<void> {
+  const spinner = ora('Extracting thumbnail...').start();
+
+  try {
+    const inputPath = path.resolve(videoFile);
+
+    // Verify input exists
+    await fs.access(inputPath);
+
+    const thumbPath = await extractThumbnail({
+      inputPath,
+      outputPath: options.output ? path.resolve(options.output) : undefined,
+      timestamp: options.time ? parseFloat(options.time) : undefined,
+      width: parseInt(options.width, 10),
+      format: options.format,
+      quality: parseInt(options.quality, 10),
+    });
+
+    spinner.succeed('Thumbnail extracted');
+    console.log(`\nThumbnail saved: ${thumbPath}\n`);
+  } catch (error) {
+    spinner.fail('Thumbnail extraction failed');
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/**
+ * GIF command - converts a video file to animated GIF
+ */
+export async function gifCommand(videoFile: string, options: GifOptions): Promise<void> {
+  const spinner = ora('Converting to GIF...').start();
+
+  try {
+    const inputPath = path.resolve(videoFile);
+
+    // Verify input exists
+    await fs.access(inputPath);
+
+    const gifPath = await convertToGif({
+      inputPath,
+      outputPath: options.output ? path.resolve(options.output) : undefined,
+      fps: parseInt(options.fps, 10),
+      width: parseInt(options.width, 10),
+      colors: parseInt(options.colors, 10),
+      dither: options.dither,
+      highQuality: !options.fast,
+    });
+
+    spinner.succeed('GIF conversion complete');
+    console.log(`\nGIF saved: ${gifPath}\n`);
+  } catch (error) {
+    spinner.fail('GIF conversion failed');
     logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
