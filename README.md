@@ -20,6 +20,12 @@ demo-recorder record demos/my-feature.demo.ts
 # Capture screenshots (same demo file!)
 demo-recorder screenshot demos/my-feature.demo.ts
 
+# Extract thumbnail from video
+demo-recorder thumbnail output/my-feature/video.mp4
+
+# Convert video to GIF
+demo-recorder gif output/my-feature/video.mp4
+
 # List demos
 demo-recorder list
 ```
@@ -35,6 +41,33 @@ Options:
   --full-page               Capture full page instead of viewport
   --headed                  Run browser in visible mode
   --no-gallery              Skip HTML gallery generation
+```
+
+### Thumbnail Options
+
+```bash
+demo-recorder thumbnail <video-file> [options]
+
+Options:
+  -o, --output <path>       Output image path
+  -t, --time <seconds>      Timestamp in seconds (default: 1/3 into video)
+  -w, --width <n>           Width in pixels (default: 1280)
+  -f, --format <format>     Image format: png, jpeg, webp (default: png)
+  -q, --quality <n>         Quality for jpeg/webp (default: 90)
+```
+
+### GIF Options
+
+```bash
+demo-recorder gif <video-file> [options]
+
+Options:
+  -o, --output <path>       Output GIF path
+  --fps <n>                 Frames per second (default: 10)
+  --width <n>               Width in pixels (default: 800)
+  --colors <n>              Color palette size, 32-256 (default: 256)
+  --no-dither               Disable dithering
+  --fast                    Use faster single-pass encoding (lower quality)
 ```
 
 ## Demo File Format

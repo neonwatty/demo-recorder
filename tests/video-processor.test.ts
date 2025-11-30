@@ -32,7 +32,7 @@ vi.mock('child_process', () => ({
 }));
 
 // Import after mock
-import { checkFfmpegInstalled, getFfmpegVersion, convertToMp4 } from '../src/recorder/video-processor';
+import { checkFfmpegInstalled, getFfmpegVersion, convertToMp4, extractThumbnail, getVideoDuration } from '../src/recorder/video-processor';
 
 describe('video-processor', () => {
   beforeEach(() => {
@@ -150,6 +150,82 @@ describe('video-processor', () => {
       process.nextTick(() => getMockProcess().emit('error', genericError));
 
       await expect(promise).rejects.toThrow('FFmpeg error: Some FFmpeg error');
+    });
+  });
+
+  describe('getVideoDuration', () => {
+    it('should return duration when ffprobe succeeds', async () => {
+      const promise = getVideoDuration('/tmp/video.mp4');
+      process.nextTick(() => {
+        getMockProcess().stdout.emit('data', '12.345\n');
+        getMockProcess().emit('close', 0);
+      });
+      const result = await promise;
+      expect(result).toBe(12.345);
+    });
+
+    it('should return 0 when ffprobe fails', async () => {
+      const promise = getVideoDuration('/tmp/video.mp4');
+      process.nextTick(() => getMockProcess().emit('close', 1));
+      const result = await promise;
+      expect(result).toBe(0);
+    });
+
+    it('should return 0 when ffprobe errors', async () => {
+      const promise = getVideoDuration('/tmp/video.mp4');
+      process.nextTick(() => getMockProcess().emit('error', new Error('not found')));
+      const result = await promise;
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('extractThumbnail', () => {
+    it('should extract thumbnail with default settings', async () => {
+      // First call for duration, second for extraction
+      const promise = extractThumbnail({ inputPath: '/tmp/video.mp4' });
+      process.nextTick(() => {
+        // ffprobe call for duration
+        getMockProcess().stdout.emit('data', '30.0\n');
+        getMockProcess().emit('close', 0);
+      });
+      // Wait for duration check to complete, then handle FFmpeg call
+      setTimeout(() => {
+        getMockProcess().emit('close', 0);
+      }, 10);
+
+      const result = await promise;
+      expect(result).toBe('/tmp/video-thumb.png');
+    });
+
+    it('should use custom timestamp when provided', async () => {
+      const promise = extractThumbnail({ inputPath: '/tmp/video.mp4', timestamp: 5 });
+      process.nextTick(() => getMockProcess().emit('close', 0));
+
+      const result = await promise;
+      expect(result).toBe('/tmp/video-thumb.png');
+      expect(mockSpawn).toHaveBeenCalledWith('ffmpeg', expect.arrayContaining(['-ss', '5']));
+    });
+
+    it('should use custom width when provided', async () => {
+      const promise = extractThumbnail({ inputPath: '/tmp/video.mp4', timestamp: 1, width: 800 });
+      process.nextTick(() => getMockProcess().emit('close', 0));
+
+      await promise;
+      expect(mockSpawn).toHaveBeenCalledWith('ffmpeg', expect.arrayContaining(['-vf', 'scale=800:-1']));
+    });
+
+    it('should generate jpeg output with quality setting', async () => {
+      const promise = extractThumbnail({
+        inputPath: '/tmp/video.mp4',
+        timestamp: 1,
+        format: 'jpeg',
+        quality: 80,
+      });
+      process.nextTick(() => getMockProcess().emit('close', 0));
+
+      const result = await promise;
+      expect(result).toBe('/tmp/video-thumb.jpg');
+      expect(mockSpawn).toHaveBeenCalledWith('ffmpeg', expect.arrayContaining(['-q:v']));
     });
   });
 });
