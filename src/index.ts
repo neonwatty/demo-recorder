@@ -3,12 +3,15 @@
 import { Command } from 'commander';
 import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand } from './cli/commands';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pkg = require('../package.json');
+
 const program = new Command();
 
 program
   .name('demo-recorder')
   .description('Record demo videos of web apps using Playwright')
-  .version('1.0.0');
+  .version(pkg.version);
 
 // demo-recorder create <id> --url <url>
 program
