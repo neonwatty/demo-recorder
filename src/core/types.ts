@@ -101,6 +101,55 @@ export interface OutroOptions {
 }
 
 /**
+ * Screenshot capture settings
+ */
+export interface ScreenshotSettings {
+  /** Image format (default: 'png') */
+  format?: 'png' | 'jpeg' | 'webp';
+  /** Quality for jpeg/webp, 0-100 (default: 90) */
+  quality?: number;
+  /** Capture full page or just viewport (default: false) */
+  fullPage?: boolean;
+}
+
+/**
+ * Individual screenshot metadata
+ */
+export interface ScreenshotCapture {
+  /** Full path to screenshot file */
+  filepath: string;
+  /** Filename only */
+  filename: string;
+  /** Capture timestamp */
+  timestamp: number;
+  /** Action that triggered capture (e.g., "click", "type") */
+  action?: string;
+  /** CSS selector of target element */
+  selector?: string;
+}
+
+/**
+ * Result of screenshot capture session
+ */
+export interface ScreenshotResult {
+  /** Array of captured screenshots */
+  screenshots: ScreenshotCapture[];
+  /** Path to generated HTML gallery */
+  galleryPath: string;
+  /** Output directory path */
+  outputDir: string;
+}
+
+/**
+ * Default screenshot settings
+ */
+export const DEFAULT_SCREENSHOT_SETTINGS: ScreenshotSettings = {
+  format: 'png',
+  quality: 90,
+  fullPage: false,
+};
+
+/**
  * Context passed to the demo's run function
  */
 export interface DemoContext {
@@ -132,6 +181,8 @@ export interface DemoContext {
   scrollToTop: (options?: ScrollOptions) => Promise<void>;
   /** Smooth scroll to bottom of page */
   scrollToBottom: (options?: ScrollOptions) => Promise<void>;
+  /** Manually capture a screenshot (available in both video and screenshot modes) */
+  screenshot: (name?: string) => Promise<string>;
 }
 
 /**
@@ -150,6 +201,8 @@ export interface DemoDefinition {
   intro?: IntroOptions;
   /** Outro effects (fade out) */
   outro?: OutroOptions;
+  /** Screenshot settings (used when running in screenshot mode) */
+  screenshot?: Partial<ScreenshotSettings>;
   /**
    * The actual demo script - receives a Playwright Page and helpers
    */

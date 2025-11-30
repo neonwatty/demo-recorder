@@ -123,6 +123,11 @@ export class PlaywrightRecorder {
         scrollToBottom: async (options?: ScrollOptions) => {
           await this.scrollToBottom(page, options);
         },
+        screenshot: async (_name?: string) => {
+          // In video mode, screenshots are a no-op (video captures everything)
+          // Return empty string since no file is created
+          return '';
+        },
       };
 
       // Run the user's demo script

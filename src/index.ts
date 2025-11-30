@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { recordCommand, listCommand, createCommand } from './cli/commands';
+import { recordCommand, listCommand, createCommand, screenshotCommand } from './cli/commands';
 
 const program = new Command();
 
@@ -30,6 +30,18 @@ program
   .option('--no-convert', 'Skip WebM to MP4 conversion')
   .option('--headed', 'Run browser in headed mode (visible window)')
   .action(recordCommand);
+
+// demo-recorder screenshot <demo-file>
+program
+  .command('screenshot <demo-file>')
+  .description('Capture screenshots from a demo (auto-captures after each interaction)')
+  .option('-o, --output <dir>', 'Output directory', './output')
+  .option('--format <format>', 'Image format: png, jpeg, webp', 'png')
+  .option('--quality <n>', 'Quality for jpeg/webp (0-100)', '90')
+  .option('--full-page', 'Capture full page instead of viewport')
+  .option('--headed', 'Run browser in headed mode (visible window)')
+  .option('--no-gallery', 'Skip HTML gallery generation')
+  .action(screenshotCommand);
 
 // demo-recorder list
 program
