@@ -39,6 +39,18 @@ This project is a CLI tool for recording demo videos and screenshots of web apps
 - "Make a GIF from the demo recording for the README"
 - "Create an animated GIF at 600px wide with 8 fps"
 
+### Documentation Generation
+
+- "Generate markdown docs from the screenshots"
+- "Create a walkthrough document from the captured screenshots"
+- "Export the screenshots to markdown format"
+
+### Embed Code
+
+- "Generate embed code for the video"
+- "Create HTML snippets to embed the demo video"
+- "Get the code to put this video in my README"
+
 ## Commands Reference
 
 ```bash
@@ -54,6 +66,12 @@ demo-recorder thumbnail <video-file> [-t <seconds>] [-w <width>] [-f <format>]
 # GIF conversion
 demo-recorder gif <video-file> [--fps <n>] [--width <n>] [--fast]
 
+# Markdown documentation
+demo-recorder markdown <screenshot-dir> [-t <title>] [-d <description>] [--timestamps] [--selectors]
+
+# Embed code generation
+demo-recorder embed <video-file> [-w <width>] [-h <height>] [--autoplay] [--loop] [--poster <url>]
+
 # Create new demo
 demo-recorder create <id> --url <url>
 
@@ -68,3 +86,5 @@ demo-recorder list
 - Gallery: `output/<demo-id>/gallery.html`
 - Thumbnails: `output/<demo-id>/<filename>-thumb.png`
 - GIFs: `output/<demo-id>/<filename>.gif`
+- Markdown: `output/<demo-id>/walkthrough.md`
+- Embed snippets: `output/<demo-id>/<filename>-embed.md`

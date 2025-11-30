@@ -7,6 +7,8 @@ import { convertToMp4, checkFfmpegInstalled, extractThumbnail } from '../recorde
 import { convertToGif } from '../recorder/gif-processor';
 import { loadDemo, listDemos } from '../core/demo-loader';
 import { logger } from '../utils/logger';
+import { generateMarkdownFromDirectory } from '../utils/markdown-generator';
+import { generateEmbedFile } from '../utils/embed-generator';
 import type { ScreenshotSettings } from '../core/types';
 
 export interface RecordOptions {
@@ -48,6 +50,24 @@ export interface GifOptions {
   colors: string;
   dither: boolean;
   fast: boolean;
+}
+
+export interface MarkdownOptions {
+  output?: string;
+  title?: string;
+  description?: string;
+  timestamps: boolean;
+  selectors: boolean;
+}
+
+export interface EmbedOptions {
+  output?: string;
+  width: string;
+  height?: string;
+  autoplay: boolean;
+  loop: boolean;
+  muted: boolean;
+  poster?: string;
 }
 
 /**
@@ -291,6 +311,75 @@ export async function gifCommand(videoFile: string, options: GifOptions): Promis
     console.log(`\nGIF saved: ${gifPath}\n`);
   } catch (error) {
     spinner.fail('GIF conversion failed');
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/**
+ * Markdown command - generates markdown documentation from screenshots
+ */
+export async function markdownCommand(screenshotDir: string, options: MarkdownOptions): Promise<void> {
+  const spinner = ora('Generating markdown...').start();
+
+  try {
+    const inputDir = path.resolve(screenshotDir);
+
+    // Verify directory exists
+    const stat = await fs.stat(inputDir);
+    if (!stat.isDirectory()) {
+      throw new Error(`Not a directory: ${inputDir}`);
+    }
+
+    const markdownPath = await generateMarkdownFromDirectory(inputDir, {
+      title: options.title,
+      description: options.description,
+      includeTimestamps: options.timestamps,
+      includeSelectors: options.selectors,
+    });
+
+    // Move to custom output if specified
+    let finalPath = markdownPath;
+    if (options.output) {
+      const outputPath = path.resolve(options.output);
+      await fs.rename(markdownPath, outputPath);
+      finalPath = outputPath;
+    }
+
+    spinner.succeed('Markdown generated');
+    console.log(`\nMarkdown saved: ${finalPath}\n`);
+  } catch (error) {
+    spinner.fail('Markdown generation failed');
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/**
+ * Embed command - generates embed snippets for a video
+ */
+export async function embedCommand(videoFile: string, options: EmbedOptions): Promise<void> {
+  const spinner = ora('Generating embed snippets...').start();
+
+  try {
+    const inputPath = path.resolve(videoFile);
+
+    // Verify input exists
+    await fs.access(inputPath);
+
+    const embedPath = await generateEmbedFile(inputPath, options.output ? path.resolve(options.output) : undefined, {
+      width: options.width,
+      height: options.height ? parseInt(options.height, 10) : undefined,
+      autoplay: options.autoplay,
+      loop: options.loop,
+      muted: options.muted,
+      poster: options.poster,
+    });
+
+    spinner.succeed('Embed snippets generated');
+    console.log(`\nEmbed file saved: ${embedPath}\n`);
+  } catch (error) {
+    spinner.fail('Embed generation failed');
     logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }

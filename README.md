@@ -26,6 +26,12 @@ demo-recorder thumbnail output/my-feature/video.mp4
 # Convert video to GIF
 demo-recorder gif output/my-feature/video.mp4
 
+# Generate markdown docs from screenshots
+demo-recorder markdown output/my-feature
+
+# Generate embed code for videos
+demo-recorder embed output/my-feature/video.mp4
+
 # List demos
 demo-recorder list
 ```
@@ -68,6 +74,34 @@ Options:
   --colors <n>              Color palette size, 32-256 (default: 256)
   --no-dither               Disable dithering
   --fast                    Use faster single-pass encoding (lower quality)
+```
+
+### Markdown Options
+
+```bash
+demo-recorder markdown <screenshot-dir> [options]
+
+Options:
+  -o, --output <path>       Output markdown file path
+  -t, --title <title>       Document title
+  -d, --description <text>  Document description
+  --timestamps              Include capture timestamps
+  --selectors               Include CSS selectors
+```
+
+### Embed Options
+
+```bash
+demo-recorder embed <video-file> [options]
+
+Options:
+  -o, --output <path>       Output file path
+  -w, --width <value>       Video width (default: 100%)
+  -h, --height <value>      Video height
+  --autoplay                Enable autoplay
+  --loop                    Enable loop
+  --muted                   Mute video
+  --poster <url>            Poster image URL
 ```
 
 ## Demo File Format
