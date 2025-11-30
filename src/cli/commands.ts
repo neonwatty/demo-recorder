@@ -2,9 +2,11 @@ import path from 'path';
 import fs from 'fs/promises';
 import ora from 'ora';
 import { PlaywrightRecorder } from '../recorder/playwright-recorder';
+import { ScreenshotRecorder } from '../recorder/screenshot-recorder';
 import { convertToMp4, checkFfmpegInstalled } from '../recorder/video-processor';
 import { loadDemo, listDemos } from '../core/demo-loader';
 import { logger } from '../utils/logger';
+import type { ScreenshotSettings } from '../core/types';
 
 export interface RecordOptions {
   output: string;
@@ -19,6 +21,15 @@ export interface CreateOptions {
   record: boolean;
   output: string;
   headed: boolean;
+}
+
+export interface ScreenshotOptions {
+  output: string;
+  format: 'png' | 'jpeg' | 'webp';
+  quality: string;
+  fullPage: boolean;
+  headed: boolean;
+  gallery: boolean;
 }
 
 /**
@@ -63,6 +74,55 @@ export async function recordCommand(demoFile: string, options: RecordOptions): P
     console.log('========================================\n');
   } catch (error) {
     spinner.fail('Recording failed');
+    logger.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/**
+ * Screenshot command - captures screenshots from a demo definition
+ */
+export async function screenshotCommand(demoFile: string, options: ScreenshotOptions): Promise<void> {
+  const spinner = ora('Loading demo definition...').start();
+
+  try {
+    const demoPath = path.resolve(demoFile);
+    const demo = await loadDemo(demoPath);
+    spinner.succeed(`Loaded demo: ${demo.name}`);
+
+    // Build screenshot settings and merge with demo settings
+    const screenshotSettings: Partial<ScreenshotSettings> = {
+      ...demo.screenshot,
+      format: options.format,
+      quality: parseInt(options.quality, 10),
+      fullPage: options.fullPage,
+    };
+
+    // Merge settings into demo
+    const demoWithSettings = {
+      ...demo,
+      screenshot: screenshotSettings,
+    };
+
+    // Capture screenshots
+    spinner.start('Capturing screenshots...');
+    const recorder = new ScreenshotRecorder({
+      headed: options.headed,
+      gallery: options.gallery,
+    });
+    const result = await recorder.capture(demoWithSettings, options.output);
+    spinner.succeed(`Captured ${result.screenshots.length} screenshot(s)`);
+
+    console.log('\n========================================');
+    console.log('Screenshots captured!');
+    console.log(`Directory: ${result.outputDir}`);
+    console.log(`Screenshots: ${result.screenshots.length}`);
+    if (result.galleryPath) {
+      console.log(`Gallery: ${result.galleryPath}`);
+    }
+    console.log('========================================\n');
+  } catch (error) {
+    spinner.fail('Screenshot capture failed');
     logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
