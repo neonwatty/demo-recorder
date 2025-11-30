@@ -3,32 +3,50 @@
  *
  * This demo shows how to create a custom wordset for censoring audio/video.
  * Uses animated interactions for a polished look.
+ *
+ * v1.3.0 Features:
+ * - Uses built-in scrollToElement helper
+ * - Includes intro/outro effects
  */
 const demo = {
   id: 'bleep-create-wordlist',
   name: 'Create Custom Word List',
   url: 'http://localhost:3004/bleep',
 
-  run: async ({ page, wait, clickAnimated, typeAnimated, zoomHighlight, moveTo }) => {
+  // Intro effects: fade in with title card
+  intro: {
+    fadeIn: true,
+    fadeDuration: 600,
+    titleCard: {
+      title: 'Creating a Custom Word List',
+      subtitle: 'Bleep That Sh*t! Demo',
+      duration: 2500,
+      background: '#1a1a2e',
+      textColor: '#ffffff',
+    },
+  },
+
+  // Outro effects: fade out to black
+  outro: {
+    fadeOut: true,
+    fadeDuration: 800,
+  },
+
+  run: async ({
+    page,
+    wait,
+    clickAnimated,
+    typeAnimated,
+    zoomHighlight,
+    moveTo,
+    scrollToElement,
+    scrollToTop,
+  }) => {
     // Wait for page to fully load (hideDevTools is called automatically)
     await wait(1500);
 
-    // Helper to scroll element to center
-    const scrollToCenter = async (selector) => {
-      await page.evaluate((sel) => {
-        const element = document.querySelector(sel);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const elementCenter = rect.top + rect.height / 2;
-          const viewportCenter = window.innerHeight / 2;
-          window.scrollBy({ top: elementCenter - viewportCenter, behavior: 'smooth' });
-        }
-      }, selector);
-      await wait(300);
-    };
-
     // Click on the "Manage Word Lists" tab (4th tab)
-    await scrollToCenter('[role="tab"]:nth-child(4)');
+    await scrollToElement('[role="tab"]:nth-child(4)');
     await zoomHighlight('[role="tab"]:nth-child(4)', { duration: 500 });
     await clickAnimated('[role="tab"]:nth-child(4)');
     await wait(1200);
@@ -46,13 +64,13 @@ const demo = {
     }
 
     // Click "Create New Wordset" button
-    await scrollToCenter('[data-testid="new-wordset-button"]');
+    await scrollToElement('[data-testid="new-wordset-button"]');
     await zoomHighlight('[data-testid="new-wordset-button"]', { duration: 500 });
     await clickAnimated('[data-testid="new-wordset-button"]');
     await wait(800);
 
     // Scroll to center the form
-    await scrollToCenter('[data-testid="wordset-name-input"]');
+    await scrollToElement('[data-testid="wordset-name-input"]');
 
     // Fill in the wordset name with animated typing
     await moveTo('[data-testid="wordset-name-input"]');
@@ -87,7 +105,7 @@ const demo = {
     await wait(400);
 
     // Scroll to center the word input area
-    await scrollToCenter('[data-testid="new-word-input"]');
+    await scrollToElement('[data-testid="new-word-input"]');
 
     // Add some words to the list with animated typing
     const wordsToAdd = ['darn', 'heck', 'fudge', 'shoot'];
@@ -102,7 +120,7 @@ const demo = {
     }
 
     // Scroll to center the save button
-    await scrollToCenter('[data-testid="save-wordset-button"]');
+    await scrollToElement('[data-testid="save-wordset-button"]');
     await wait(400);
 
     // Highlight and click save
@@ -111,7 +129,7 @@ const demo = {
     await wait(1500);
 
     // Scroll to show the success message and new wordset
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    await scrollToTop({ duration: 800, easing: 'ease-in-out' });
     await wait(1500);
   },
 };
