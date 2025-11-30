@@ -9,6 +9,7 @@ import { loadDemo, listDemos } from '../core/demo-loader';
 import { logger } from '../utils/logger';
 import { generateMarkdownFromDirectory } from '../utils/markdown-generator';
 import { generateEmbedFile } from '../utils/embed-generator';
+import { MOBILE_PRESETS, DESKTOP_PRESETS } from '../core/viewports';
 import type { ScreenshotSettings } from '../core/types';
 
 export interface RecordOptions {
@@ -33,6 +34,10 @@ export interface ScreenshotOptions {
   fullPage: boolean;
   headed: boolean;
   gallery: boolean;
+  viewport?: string;
+  stepNumbers: boolean;
+  stepPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  captions: boolean;
 }
 
 export interface ThumbnailOptions {
@@ -147,6 +152,10 @@ export async function screenshotCommand(demoFile: string, options: ScreenshotOpt
     const recorder = new ScreenshotRecorder({
       headed: options.headed,
       gallery: options.gallery,
+      viewport: options.viewport,
+      stepNumbers: options.stepNumbers,
+      stepPosition: options.stepPosition,
+      captions: options.captions,
     });
     const result = await recorder.capture(demoWithSettings, options.output);
     spinner.succeed(`Captured ${result.screenshots.length} screenshot(s)`);
@@ -383,6 +392,26 @@ export async function embedCommand(videoFile: string, options: EmbedOptions): Pr
     logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
+}
+
+/**
+ * Viewports command - lists available viewport presets
+ */
+export async function viewportsCommand(): Promise<void> {
+  console.log('\nAvailable viewport presets:\n');
+
+  console.log('Mobile Devices:');
+  for (const [key, preset] of Object.entries(MOBILE_PRESETS)) {
+    console.log(`  ${key.padEnd(20)} ${preset.name} (${preset.width}x${preset.height})`);
+  }
+
+  console.log('\nDesktop/Laptop:');
+  for (const [key, preset] of Object.entries(DESKTOP_PRESETS)) {
+    console.log(`  ${key.padEnd(20)} ${preset.name} (${preset.width}x${preset.height})`);
+  }
+
+  console.log('\nCustom format: WIDTHxHEIGHT (e.g., 1024x768)\n');
+  console.log('Usage: demo-recorder screenshot <demo> --viewport iphone-15-pro\n');
 }
 
 /**

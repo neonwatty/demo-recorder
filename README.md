@@ -32,6 +32,12 @@ demo-recorder markdown output/my-feature
 # Generate embed code for videos
 demo-recorder embed output/my-feature/video.mp4
 
+# Mobile viewport screenshots
+demo-recorder screenshot demos/my-demo.ts --viewport iphone-15-pro
+
+# List available viewport presets
+demo-recorder viewports
+
 # List demos
 demo-recorder list
 ```
@@ -47,6 +53,28 @@ Options:
   --full-page               Capture full page instead of viewport
   --headed                  Run browser in visible mode
   --no-gallery              Skip HTML gallery generation
+  --viewport <preset>       Viewport preset (e.g., iphone-15-pro) or WxH
+  --step-numbers            Add step number badges to screenshots
+  --step-position <pos>     Badge position: top-left, top-right, bottom-left, bottom-right
+  --captions                Add action description captions
+```
+
+### Viewport Presets
+
+```bash
+# List all available presets
+demo-recorder viewports
+
+# Common presets:
+#   iphone-15-pro      iPhone 15 Pro (393x852)
+#   iphone-12          iPhone 12/13/14 (390x844)
+#   ipad               iPad (768x1024)
+#   pixel-7            Google Pixel 7 (412x915)
+#   desktop            Desktop (1920x1080)
+#   macbook-pro-14     MacBook Pro 14" (1512x982)
+
+# Custom viewport size
+demo-recorder screenshot demo.ts --viewport 1024x768
 ```
 
 ### Thumbnail Options

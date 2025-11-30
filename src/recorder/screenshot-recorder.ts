@@ -17,12 +17,29 @@ import type {
 import { DEFAULT_VIDEO_SETTINGS, DEFAULT_SCREENSHOT_SETTINGS } from '../core/types';
 import { logger } from '../utils/logger';
 import { generateGallery } from '../utils/gallery-generator';
+import { parseViewport, type ViewportPreset } from '../core/viewports';
+import {
+  generateStepBadgeScript,
+  generateTextAnnotationScript,
+  generateRemoveAnnotationsScript,
+  getActionDescription,
+  type AnnotationOptions,
+  DEFAULT_ANNOTATION_OPTIONS,
+} from '../utils/annotations';
 
 export interface ScreenshotRecorderOptions {
   /** Run browser in headed mode (visible window) */
   headed?: boolean;
   /** Generate HTML gallery (default: true) */
   gallery?: boolean;
+  /** Viewport preset name or WxH string */
+  viewport?: string;
+  /** Add step numbers to screenshots */
+  stepNumbers?: boolean;
+  /** Step number badge position */
+  stepPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  /** Add action description captions */
+  captions?: boolean;
 }
 
 export class ScreenshotRecorder {
@@ -32,19 +49,36 @@ export class ScreenshotRecorder {
   private captures: ScreenshotCapture[] = [];
   private screenshotDir: string = '';
   private settings: ScreenshotSettings = DEFAULT_SCREENSHOT_SETTINGS;
+  private viewportPreset: ViewportPreset | undefined;
+  private annotationOptions: AnnotationOptions;
 
   constructor(options: ScreenshotRecorderOptions = {}) {
     this.options = { gallery: true, ...options };
+
+    // Parse viewport preset if provided
+    if (options.viewport) {
+      this.viewportPreset = parseViewport(options.viewport);
+      if (!this.viewportPreset) {
+        logger.warn(`Unknown viewport preset: ${options.viewport}, using default`);
+      }
+    }
+
+    // Build annotation options
+    this.annotationOptions = {
+      ...DEFAULT_ANNOTATION_OPTIONS,
+      stepNumbers: options.stepNumbers,
+      stepPosition: options.stepPosition,
+    };
   }
 
   /**
    * Capture screenshots from a demo
    */
   async capture(demo: DemoDefinition, outputDir: string): Promise<ScreenshotResult> {
-    const videoSettings: VideoSettings = {
-      ...DEFAULT_VIDEO_SETTINGS,
-      ...demo.video,
-    };
+    // Use viewport preset if provided, otherwise fall back to demo settings
+    const videoSettings: VideoSettings = this.viewportPreset
+      ? { width: this.viewportPreset.width, height: this.viewportPreset.height }
+      : { ...DEFAULT_VIDEO_SETTINGS, ...demo.video };
 
     this.settings = {
       ...DEFAULT_SCREENSHOT_SETTINGS,
@@ -57,7 +91,11 @@ export class ScreenshotRecorder {
     this.captures = [];
 
     logger.info(`Starting screenshot capture for: ${demo.name}`);
-    logger.info(`Resolution: ${videoSettings.width}x${videoSettings.height}`);
+    if (this.viewportPreset) {
+      logger.info(`Viewport: ${this.viewportPreset.name} (${videoSettings.width}x${videoSettings.height})`);
+    } else {
+      logger.info(`Resolution: ${videoSettings.width}x${videoSettings.height}`);
+    }
     logger.info(`Format: ${this.settings.format}`);
     logger.info(`URL: ${demo.url}`);
 
@@ -67,12 +105,28 @@ export class ScreenshotRecorder {
         headless: !this.options.headed,
       });
 
-      this.context = await this.browser.newContext({
+      // Build context options with viewport preset settings
+      const contextOptions: Parameters<typeof this.browser.newContext>[0] = {
         viewport: {
           width: videoSettings.width,
           height: videoSettings.height,
         },
-      });
+      };
+
+      // Add mobile device settings if using a mobile preset
+      if (this.viewportPreset) {
+        if (this.viewportPreset.isMobile !== undefined) {
+          contextOptions.isMobile = this.viewportPreset.isMobile;
+        }
+        if (this.viewportPreset.hasTouch !== undefined) {
+          contextOptions.hasTouch = this.viewportPreset.hasTouch;
+        }
+        if (this.viewportPreset.deviceScaleFactor !== undefined) {
+          contextOptions.deviceScaleFactor = this.viewportPreset.deviceScaleFactor;
+        }
+      }
+
+      this.context = await this.browser.newContext(contextOptions);
 
       const page = await this.context.newPage();
 
@@ -211,6 +265,19 @@ export class ScreenshotRecorder {
     // Brief delay to ensure UI has settled
     await page.waitForTimeout(100);
 
+    // Add step number badge if enabled
+    if (this.options.stepNumbers) {
+      await page.evaluate(generateStepBadgeScript(index, this.annotationOptions));
+    }
+
+    // Add caption if enabled
+    if (this.options.captions && action) {
+      const caption = getActionDescription(action, selector);
+      if (caption) {
+        await page.evaluate(generateTextAnnotationScript(caption, this.annotationOptions));
+      }
+    }
+
     // Take screenshot
     await page.screenshot({
       path: filepath,
@@ -218,6 +285,11 @@ export class ScreenshotRecorder {
       quality: this.settings.format !== 'png' ? this.settings.quality : undefined,
       fullPage: this.settings.fullPage,
     });
+
+    // Remove annotations after screenshot
+    if (this.options.stepNumbers || this.options.captions) {
+      await page.evaluate(generateRemoveAnnotationsScript());
+    }
 
     const capture: ScreenshotCapture = {
       filepath,
