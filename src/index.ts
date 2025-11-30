@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand } from './cli/commands';
+import { recordCommand, listCommand, createCommand, screenshotCommand, thumbnailCommand, gifCommand, markdownCommand, embedCommand } from './cli/commands';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../package.json');
@@ -75,5 +75,29 @@ program
   .option('--no-dither', 'Disable dithering')
   .option('--fast', 'Use faster single-pass encoding (lower quality)')
   .action(gifCommand);
+
+// demo-recorder markdown <screenshot-dir>
+program
+  .command('markdown <screenshot-dir>')
+  .description('Generate markdown documentation from screenshots')
+  .option('-o, --output <path>', 'Output markdown file path')
+  .option('-t, --title <title>', 'Document title')
+  .option('-d, --description <text>', 'Document description')
+  .option('--timestamps', 'Include capture timestamps')
+  .option('--selectors', 'Include CSS selectors')
+  .action(markdownCommand);
+
+// demo-recorder embed <video-file>
+program
+  .command('embed <video-file>')
+  .description('Generate embed code snippets for a video')
+  .option('-o, --output <path>', 'Output file path')
+  .option('-w, --width <value>', 'Video width', '100%')
+  .option('-h, --height <value>', 'Video height')
+  .option('--autoplay', 'Enable autoplay')
+  .option('--loop', 'Enable loop')
+  .option('--muted', 'Mute video')
+  .option('--poster <url>', 'Poster image URL')
+  .action(embedCommand);
 
 program.parse();
