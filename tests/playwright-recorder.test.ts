@@ -11,6 +11,17 @@ vi.mock('playwright', () => ({
           goto: vi.fn().mockResolvedValue(undefined),
           waitForTimeout: vi.fn().mockResolvedValue(undefined),
           evaluate: vi.fn().mockResolvedValue(undefined),
+          addStyleTag: vi.fn().mockResolvedValue(undefined),
+          click: vi.fn().mockResolvedValue(undefined),
+          keyboard: {
+            type: vi.fn().mockResolvedValue(undefined),
+          },
+          $: vi.fn().mockResolvedValue({
+            boundingBox: vi.fn().mockResolvedValue({ x: 100, y: 100, width: 50, height: 30 }),
+          }),
+          mouse: {
+            move: vi.fn().mockResolvedValue(undefined),
+          },
           video: vi.fn().mockReturnValue({
             path: vi.fn().mockResolvedValue('/tmp/video.webm'),
           }),
