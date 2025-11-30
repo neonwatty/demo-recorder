@@ -51,6 +51,56 @@ export interface ZoomOptions {
 }
 
 /**
+ * Options for scroll animations
+ */
+export interface ScrollOptions {
+  /** Scroll animation duration in ms (default: 600) */
+  duration?: number;
+  /** Easing function (default: 'ease-out') */
+  easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
+  /** Pixel offset from target element (default: 0) */
+  offset?: number;
+}
+
+/**
+ * Title card configuration for intro
+ */
+export interface TitleCardOptions {
+  /** Main title text */
+  title: string;
+  /** Optional subtitle */
+  subtitle?: string;
+  /** Duration to show title card in ms (default: 2000) */
+  duration?: number;
+  /** Background color (default: '#000') */
+  background?: string;
+  /** Text color (default: '#fff') */
+  textColor?: string;
+}
+
+/**
+ * Intro effect options
+ */
+export interface IntroOptions {
+  /** Fade in from black (default: false) */
+  fadeIn?: boolean;
+  /** Fade duration in ms (default: 800) */
+  fadeDuration?: number;
+  /** Optional title card */
+  titleCard?: TitleCardOptions;
+}
+
+/**
+ * Outro effect options
+ */
+export interface OutroOptions {
+  /** Fade out to black (default: false) */
+  fadeOut?: boolean;
+  /** Fade duration in ms (default: 800) */
+  fadeDuration?: number;
+}
+
+/**
  * Context passed to the demo's run function
  */
 export interface DemoContext {
@@ -74,6 +124,14 @@ export interface DemoContext {
   clickAnimated: (selector: string, options?: ClickOptions) => Promise<void>;
   /** Highlight with zoom/scale effect */
   zoomHighlight: (selector: string, options?: ZoomOptions) => Promise<void>;
+  /** Smooth scroll to an element */
+  scrollToElement: (selector: string, options?: ScrollOptions) => Promise<void>;
+  /** Smooth scroll by a number of pixels */
+  scrollBy: (pixels: number, options?: ScrollOptions) => Promise<void>;
+  /** Smooth scroll to top of page */
+  scrollToTop: (options?: ScrollOptions) => Promise<void>;
+  /** Smooth scroll to bottom of page */
+  scrollToBottom: (options?: ScrollOptions) => Promise<void>;
 }
 
 /**
@@ -88,6 +146,10 @@ export interface DemoDefinition {
   url: string;
   /** Video recording settings (optional, has defaults) */
   video?: Partial<VideoSettings>;
+  /** Intro effects (fade in, title card) */
+  intro?: IntroOptions;
+  /** Outro effects (fade out) */
+  outro?: OutroOptions;
   /**
    * The actual demo script - receives a Playwright Page and helpers
    */
